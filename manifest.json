@@ -1,32 +1,48 @@
 {
-    "manifest_version": 3,
-    "name": "WA-WPP",
-    "version": "1.0",
-    "description": "WA-WPP extension for interacting with WhatsApp Web using wppconnect-wa-v3.16.6.js",
-    "permissions": [
-        "tabs",
-        "activeTab",
-        "background"
-    ],
-    "background": {
-        "service_worker": "background.js"
+  "manifest_version": 3,
+  "name": "WA-WPP",
+  "version": "1.0",
+  "description": "WA-WPP extension for interacting with WhatsApp Web using wppconnect-wa-v3.16.6.js.",
+  "permissions": [
+    "tabs",
+    "activeTab",
+    "background",
+    //VALS: Added for future Google Sheets integration to allow OAuth authentication
+    "identity"
+  ],
+  //VALS: Added host_permissions for Google Sheets API access
+  //VALS: Moved from permissions to fix the error
+  "host_permissions": [
+    "https://sheets.googleapis.com/*"
+  ],
+  "background": {
+    //VALS: Background script is kept as a placeholder for future Sheets integration
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      //VALS: Injects wa-js and my-code.js into WhatsApp Web in the MAIN world to access WPP
+      "matches": ["https://web.whatsapp.com/*"],
+      "js": ["wppconnect-wa-v3.16.6.js", "my-code.js"],
+      "world": "MAIN"
     },
-    "content_scripts": [{
-        "matches": ["https://web.whatsapp.com/*"],
-        "js": ["wppconnect-wa-v3.16.6.js", "my-code.js"],
-        "world": "MAIN"
-    },{
-        "matches": ["https://web.whatsapp.com/*"],
-        "js": ["content.js"]
-    }],
-    "web_accessible_resources": [{
-        "resources": ["wppconnect-wa-v3.16.6.js"],
-        "matches": ["https://web.whatsapp.com/*"]
-    }],
-    "icons": {
-        "16": "icons/wppconnect16.png",
-        "32": "icons/wppconnect32.png",
-        "48": "icons/wppconnect48.png",
-        "128": "icons/wppconnect128.png"
+    {
+      //VALS: Injects content.js in the isolated world to bridge external scripts and my-code.js
+      "matches": ["https://web.whatsapp.com/*"],
+      "js": ["content.js"]
     }
+  ],
+  "web_accessible_resources": [
+    {
+      //VALS: Makes wa-js accessible to WhatsApp Web page
+      "resources": ["wppconnect-wa-v3.16.6.js"],
+      "matches": ["https://web.whatsapp.com/*"]
+    }
+  ],
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
 }
