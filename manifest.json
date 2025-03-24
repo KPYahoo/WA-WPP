@@ -1,0 +1,32 @@
+{
+    "manifest_version": 3,
+    "name": "WA-WPP",
+    "version": "1.0",
+    "description": "WA-WPP extension for interacting with WhatsApp Web using wppconnect-wa-v3.16.6.js",
+    "permissions": [
+        "tabs",
+        "activeTab",
+        "background"
+    ],
+    "background": {
+        "service_worker": "background.js"
+    },
+    "content_scripts": [{
+        "matches": ["https://web.whatsapp.com/*"],
+        "js": ["wppconnect-wa-v3.16.6.js", "my-code.js"],
+        "world": "MAIN"
+    },{
+        "matches": ["https://web.whatsapp.com/*"],
+        "js": ["content.js"]
+    }],
+    "web_accessible_resources": [{
+        "resources": ["wppconnect-wa-v3.16.6.js"],
+        "matches": ["https://web.whatsapp.com/*"]
+    }],
+    "icons": {
+        "16": "icons/wppconnect16.png",
+        "32": "icons/wppconnect32.png",
+        "48": "icons/wppconnect48.png",
+        "128": "icons/wppconnect128.png"
+    }
+}
