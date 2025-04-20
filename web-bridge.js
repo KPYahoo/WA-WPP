@@ -55,7 +55,7 @@ window.addEventListener('message', async (event) => {
                 }
                 const whatsappId = `${msg.phone}@c.us`;
                 console.log(`Sending to ${whatsappId}...`);
-                await window.WPP.chat.sendTextMessage(whatsappId, msg.text, { createChat: true });
+                await window.WPPBridge.WPP.chat.sendTextMessage(whatsappId, msg.text, { createChat: true });
                 await fetch(webAppUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
