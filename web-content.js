@@ -21,7 +21,7 @@
             return new Promise((resolve, reject) => {
               const requestId = 'req_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
               pendingRequests.set(requestId, { resolve, reject });
-
+              console.log('Sending WPP request:', { requestId, path: newPath, args });
               window.postMessage({
                 action: 'callWPPBridge',
                 requestId,
@@ -42,9 +42,13 @@
   };
 
   window.addEventListener('message', (event) => {
-    if (event.source !== window) return;
+    if (event.source !== window) {
+      console.log('Ignoring message from different source:', event.source);
+      return;
+    }
 
     if (event.data && event.data.action === 'wppBridgeResponse') {
+      console.log('Received WPP bridge response:', event.data);
       const { requestId, success, result, error } = event.data;
       const request = pendingRequests.get(requestId);
       if (request) {
@@ -55,18 +59,26 @@
         }
         pendingRequests.delete(requestId);
       }
-    } else if (event.data && event.data.action === 'openBatchPage') {
-      // Trigger batch page opening
-      chrome.runtime.sendMessage({ type: 'OPEN_BATCH_PAGE' }, response => {
-        if (response.status === 'ok') {
-          console.log('Batch page opened');
-        }
-      });
     } else if (event.data && event.data.action === 'startWABatchProcessing') {
+      console.log('Received batch processing request:', event.data);
       // Forward full batch to the WhatsApp tab context (web-bridge.js)
-      chrome.runtime.sendMessage({ type: 'WA_BATCH_PROCESS', payload: event.data }, (response) => {
-        console.log('Batch forward status:', response?.status || response);
-      });
+      try {
+        chrome.runtime.sendMessage({ 
+          type: 'WA_BATCH_PROCESS', 
+          payload: event.data 
+        }, (response) => {
+          if (chrome.runtime.lastError) {
+            console.error('Error sending batch to background:', chrome.runtime.lastError);
+            return;
+          }
+          console.log('Batch forward status:', response?.status || response);
+        });
+        console.log('Batch message sent to background script');
+      } catch (error) {
+        console.error('Failed to send batch message:', error);
+      }
     }
   });
+
+  console.log('Web content script setup completed');
 })();
