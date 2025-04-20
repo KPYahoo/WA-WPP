@@ -1,48 +1,49 @@
 {
   "manifest_version": 3,
-  "name": "WA-WPP",
+  "name": "WhatsApp Web Bridge",
   "version": "1.0",
-  "description": "WA-WPP extension for interacting with WhatsApp Web using wppconnect-wa-v3.16.6.js.",
-  "permissions": [
-    "tabs",
-    "activeTab",
-    "background",
-    //VALS: Added for future Google Sheets integration to allow OAuth authentication
-    "identity"
-  ],
-  //VALS: Added host_permissions for Google Sheets API access
-  //VALS: Moved from permissions to fix the error
-  "host_permissions": [
-    "https://sheets.googleapis.com/*"
-  ],
+  "description": "Bridge to interact with WhatsApp Web from any website",
+  "icons": {
+    "128": "icon.png"
+  },
   "background": {
-    //VALS: Background script is kept as a placeholder for future Sheets integration
     "service_worker": "background.js"
   },
   "content_scripts": [
     {
-      //VALS: Injects wa-js and my-code.js into WhatsApp Web in the MAIN world to access WPP
-      "matches": ["https://web.whatsapp.com/*"],
-      "js": ["wppconnect-wa-v3.16.6.js", "my-code.js"],
+      "matches": ["<all_urls>"],
+      "exclude_matches": ["https://web.whatsapp.com/*"],
+      "js": ["web-content.js"],
       "world": "MAIN"
     },
     {
-      //VALS: Injects content.js in the isolated world to bridge external scripts and my-code.js
+      "matches": ["<all_urls>"],
+      "exclude_matches": ["https://web.whatsapp.com/*"],
+      "js": ["web-bridge.js"]
+    },
+    {
       "matches": ["https://web.whatsapp.com/*"],
-      "js": ["content.js"]
+      "js": ["whatsapp-content.js"]
+    },
+    {
+      "matches": ["https://web.whatsapp.com/*"],
+      "js": ["wpp-injector.js"],
+      "world": "MAIN"
     }
   ],
   "web_accessible_resources": [
     {
-      //VALS: Makes wa-js accessible to WhatsApp Web page
-      "resources": ["wppconnect-wa-v3.16.6.js"],
-      "matches": ["https://web.whatsapp.com/*"]
+      "resources": ["wppconnect-wa.js", "gs-2-wa-batch.html"],
+      "matches": ["https://web.whatsapp.com/*", "<all_urls>"]
     }
   ],
-  "icons": {
-    "16": "icons/icon16.png",
-    "32": "icons/icon32.png",
-    "48": "icons/icon48.png",
-    "128": "icons/icon128.png"
-  }
+  "host_permissions": [
+    "https://web.whatsapp.com/*",
+    "<all_urls>"
+  ],
+  "permissions": [
+    "tabs",
+    "storage",
+    "scripting"
+  ]
 }
