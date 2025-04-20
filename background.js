@@ -1,9 +1,47 @@
-//VALS: Background script is currently minimal, acting as a placeholder
-//VALS: Will be used for future Google Sheets integration to handle API calls securely
+console.log('Background script initialized');
 
-//VALS: Listen for messages from content.js (for future use)
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  //VALS: For now, no logic is needed since my-code.js handles WPP interactions
-  //VALS: In the future, this will handle Sheets API calls and forward data to my-code.js
-  sendResponse({ success: true, response: "Background script ready" });
+  console.log('Background received:', message);
+
+  if (message.type === 'CALL_WPP') {
+    chrome.tabs.query({ url: 'https://web.whatsapp.com/*' }, tabs => {
+      if (tabs.length === 0) {
+        sendResponse({
+          success: false,
+          error: 'WhatsApp Web tab not found'
+        });
+        return;
+      }
+
+      chrome.tabs.sendMessage(tabs[0].id, {
+        type: 'CALL_WPP',
+        requestId: message.requestId,
+        path: message.path,
+        args: message.args
+      }, response => {
+        if (chrome.runtime.lastError) {
+          sendResponse({
+            success: false,
+            error: 'Failed to communicate with WhatsApp Web tab: ' + chrome.runtime.lastError.message
+          });
+          return;
+        }
+        sendResponse(response);
+      });
+    });
+    return true;
+  } else if (message.type === 'WHATSAPP_TAB_READY') {
+    console.log('WhatsApp tab ready from tab:', sender.tab.id);
+    sendResponse({ status: 'ok' });
+  } else if (message.type === 'OPEN_BATCH_PAGE') {
+    // Open gs-2-wa-batch.html in a new tab
+    chrome.tabs.create({ url: chrome.runtime.getURL('gs-2-wa-batch.html') }, () => {
+      sendResponse({ status: 'ok' });
+    });
+    return true;
+  }
+});
+
+chrome.runtime.onSuspend.addListener(() => {
+  console.log('Background script suspending');
 });
